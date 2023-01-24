@@ -16,6 +16,9 @@ from rest_framework.decorators import api_view
 from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser 
 from rest_framework import status
+from .models import validate_no_bad_word
+from django.core.exceptions import ValidationError
+from django.contrib import messages
 
 
 def is_users(post_user, logged_user):
@@ -119,12 +122,17 @@ class PostDetailView(DetailView):
         return data
 
     def post(self, request, *args, **kwargs):
-        new_comment = Comment(content=request.POST.get('content'),
-                            author=self.request.user,
-                            post_connected=self.get_object())
-        new_comment.save()
-
-        return self.get(self, request, *args, **kwargs)
+        if request.method == 'POST':
+            form = NewCommentForm(request.POST)
+            if form.is_valid():
+                comment = request.POST.get('content')
+                new_comment = Comment(content=comment, author=self.request.user, post_connected=self.get_object())
+                new_comment.save()
+                return self.get(self, request, *args, **kwargs)
+            else:
+                messages.warning(request, 'No bad words allowed!')
+            return super().get(self, request, *args, **kwargs)
+        
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
