@@ -110,6 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -139,3 +140,42 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'blog-home'
 LOGIN_URL = 'login'
+
+CACHES = {
+    'default': {
+        #'BACKEND': 'django.core.cache.backends.dummy.DummyCache', 
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/',
+        #'LOCATION': 'redis://username:password@127.0.0.1:6379',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+ 
+    },
+    'file': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache'
+    },
+
+    # 'memcache': {
+    #     'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+    #     'LOCATION': '127.0.0.1:11211',
+    # },
+
+    'database': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    },
+    'localmemory': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+#CACHE_MIDDLEWARE_ALIAS = 'default'
+#CACHE_MIDDLEWARE_SECONDS  = 15 * 60
+#Used to prevent key collision if cache is shared across multiple projects
+#CACHE_MIDDLEWARE_KEY_PREFIX = ''
+
+SESSIONS_ENGINE = 'django.contrib.backend.cached_db'
+

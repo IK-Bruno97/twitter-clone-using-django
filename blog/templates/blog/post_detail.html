@@ -102,4 +102,25 @@
         {% endif %}
     </div>
   </div>
+
+  <script>
+    const draftPost = () => {
+        const data = document.getElementById('id_content').value;
+        fetch('/draftpost/',{
+            method: "POST",
+            body: JSON.stringify({
+                data: data,
+                csrfmiddlewaretoken: "{{csrf_token}}",
+            }),
+            headers: {
+                'x-CSRFToken': '{{csrf_token}}',
+                credentials: 'include'
+            }
+        }).then(res => {
+            console.log("Request completed! response: ", res);
+        });
+    }
+
+    setInterval(draftPost, 2000);
+  </script>
 {% endblock content %}

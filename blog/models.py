@@ -3,6 +3,10 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
+from rest_framework import serializers
+from django.core import serializers
 
 bad_words = ['fuck', 'pussy', 'nigga', 'ass']
 
@@ -45,3 +49,46 @@ class Preference(models.Model):
 
     class Meta:
        unique_together = ("user", "post", "value")
+
+
+class ActivityLog(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    action = models.CharField(max_length=300)
+
+    def __str__(self):
+        return f'{self.user}, {self.action}'
+
+    @receiver(post_save, sender=Post)
+    def _post_save_activity_log(sender, instance, **kwargs):
+        user = User.objects.get(email = instance.author.email)
+        ActivityLog.objects.create(
+            user = user,
+            action = f'User #{user.id} {user.email} saved post {instance.id}'
+        )
+        
+
+class DeletedData(models.Model):
+    model_type = models.CharField(max_length=200)
+    model_id = models.IntegerField()
+    data = models.TextField()
+
+    @receiver(post_delete, sender=Post)
+    def archive_posts(sender, instance, **kwargs):
+        data = serializers.serialize('json', [instance])
+        DeletedData.objects.create(
+            model_type = 'Post',
+            model_id = instance.id,
+            data = data
+        )
+
+def restore_post(id):
+    deleted = DeletedData.objects.get(
+        model_type = 'Post',
+        model_id = id,
+    )
+    for instance in serializers.deserialize('json', deleted.data):
+        instance.save()
+        deleted.delete()
+
+
+    

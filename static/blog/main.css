@@ -141,7 +141,7 @@ textarea:focus, input:focus {
 
 .btn-info {
     color: white;
-    background-color: #36405e;
+    background-color: rgb(88, 171, 230);
     border-color: white;
 }
 
