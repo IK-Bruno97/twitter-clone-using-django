@@ -124,7 +124,7 @@ class PostDetailView(DetailView):
         data = super().get_context_data(**kwargs)
         comments_connected = Comment.objects.filter(post_connected=self.get_object()).order_by('-date_posted')
         data['comments'] = comments_connected
-        data['form'] = NewCommentForm({'content':self.request.session['draft-post']})
+        data['form'] = NewCommentForm({'content': self.request.session['draft-post']})
         return data
 
     def post(self, request, *args, **kwargs):
@@ -136,11 +136,7 @@ class PostDetailView(DetailView):
                 new_comment.save()
                 #request.session.clear()
                 
-            else:
-                messages.warning(request, 'No bad words allowed!')
             return super().get(self, request, *args, **kwargs)
-
-
 
 
 
